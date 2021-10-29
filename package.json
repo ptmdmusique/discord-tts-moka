@@ -1,0 +1,21 @@
+{
+  "name": "discord-tts-moka",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx tsc -w"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^4.4.4"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^3.3.1",
+    "discord.js": "^13.2.0",
+    "dotenv": "^10.0.0"
+  }
+}
