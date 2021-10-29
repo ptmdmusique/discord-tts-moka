@@ -1,5 +1,6 @@
 import { Client, Message } from "discord.js/typings/index.js";
-import { MokaSupportedCmd } from "../data/moka-cmd";
+import { MokaConfigCmd, MokaTextCmd } from "../data/moka-cmd";
+import { mokaGlobalConfig } from "../moka";
 
 const getDayType = (): "morning" | "afternoon" | "evening" => {
   const today = new Date();
@@ -15,8 +16,7 @@ const getDayType = (): "morning" | "afternoon" | "evening" => {
 };
 
 export const getTextFromMokaCmd =
-  (client: Client, message: Message) =>
-  (cmd: MokaSupportedCmd, args: string[]) => {
+  (client: Client, message: Message) => (cmd: MokaTextCmd, args: string[]) => {
     switch (cmd) {
       case "hello":
         let greeting: string;
@@ -32,16 +32,31 @@ export const getTextFromMokaCmd =
             break;
         }
 
-        if (args.length > 0) {
-          return `${args[0]}, ${greeting}!`;
-        }
-
-        return `Minasan, ${greeting}!`;
+        const prefix = args.length > 0 ? args[0] : "Minasan";
+        return `${prefix}, ${greeting}! (✿◠‿◠)`;
 
       case "ping":
-        return "Pong ~";
+        return "Pong ~ (✿◕‿◕✿)";
 
       case "goodnight":
-        return `Oyasumi, ${message.author.username} ~`;
+        return `Oyasumi, ${message.author.username} ~ (^人^)`;
+    }
+  };
+
+export const handleMokaConfigCmd =
+  (client: Client, message: Message) =>
+  (cmd: MokaConfigCmd, args: string[]) => {
+    switch (cmd) {
+      case "prefix":
+        if (args.length === 0) {
+          message.channel.send("Bạn ơi cho mình xin kí tự mới cho prefix hen");
+          return;
+        }
+
+        mokaGlobalConfig.cmdPrefix = args[0];
+        message.channel.send(
+          `Từ giờ prefix mới là: "${args[0]}" hén ヽ（≧□≦）ノ`,
+        );
+        return;
     }
   };

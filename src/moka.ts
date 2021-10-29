@@ -1,31 +1,59 @@
 import { Client, Intents, Message } from "discord.js";
-import { doesMokaSupportCmd, isMokaTextCmd } from "./data/moka-cmd";
+import {
+  doesMokaSupportCmd,
+  isMokaConfigCmd,
+  isMokaTextCmd,
+} from "./data/moka-cmd";
 import { mokaToken } from "./utils/env";
-import { logInfo } from "./utils/logger.util";
-import { getTextFromMokaCmd } from "./utils/moka-cmd-handler";
+import { logError, logInfo } from "./utils/logger.util";
+import {
+  getTextFromMokaCmd,
+  handleMokaConfigCmd,
+} from "./utils/moka-cmd-handler";
+import { nanoid } from "nanoid";
 
-let cmdPrefix = "~";
+export const mokaGlobalConfig = {
+  cmdPrefix: "~",
+};
 
 const handleNewMessage = (client: Client) => (message: Message) => {
-  if (client.user?.id === message.author.id) {
-    return;
-  }
+  try {
+    if (
+      client.user?.id === message.author.id ||
+      !message.content.startsWith(mokaGlobalConfig.cmdPrefix)
+    ) {
+      return;
+    }
 
-  if (!message.content.startsWith(cmdPrefix)) {
-    return;
-  }
+    const [cmd, ...args] = message.content
+      .slice(mokaGlobalConfig.cmdPrefix.length)
+      .split(/ +/);
 
-  const [cmd, ...args] = message.content.slice(cmdPrefix.length).split(/ +/);
+    if (!cmd) {
+      message.channel.send(`Bạn ơi lệnh rớt giữa đường kìa (。﹏。*)`);
+      return;
+    }
+    if (!doesMokaSupportCmd(cmd)) {
+      message.channel.send(`Bạn ơi mình hông hiểu lệnh "${cmd}" (≧﹏ ≦)`);
+      return;
+    }
 
-  if (!doesMokaSupportCmd(cmd)) {
-    message.channel.send(`Bạn ơi mình hông hiểu lệnh ${cmd}`);
-    return;
-  }
+    if (isMokaTextCmd(cmd)) {
+      const texter = getTextFromMokaCmd(client, message);
+      message.channel.send(texter(cmd, args));
+      return;
+    }
 
-  if (isMokaTextCmd(cmd)) {
-    const texter = getTextFromMokaCmd(client, message);
-    message.channel.send(texter(cmd, args));
-    return;
+    if (isMokaConfigCmd(cmd)) {
+      handleMokaConfigCmd(client, message)(cmd, args);
+      return;
+    }
+  } catch (error) {
+    const errId = nanoid();
+    logError(error as any, `Moka message handler ${errId}`);
+    message.channel.send(
+      `Úi, lỗi gì trên server nè, nhớ hú admin với mã ${errId} nha ヾ(≧へ≦)〃`,
+    );
   }
 };
 
