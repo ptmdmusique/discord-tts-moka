@@ -1,4 +1,5 @@
 import chalk, { Chalk } from "chalk";
+import { nanoid } from "nanoid";
 
 type LogLevel = "debug" | "error" | "info" | "warn";
 
@@ -48,4 +49,12 @@ const logHelper = (
   loggerMap[logLevel](
     `${levelStr.padEnd(10, " ")} ${timeStr} ${fromStr} ${messageStr}`,
   );
+};
+
+// TODO: handle this better
+export const handleError = (error: any, botName = "Moka") => {
+  const errId = nanoid();
+  logError(error as any, `${botName} message handler ${errId}`);
+
+  return `Úi, lỗi gì trên server nè, nhớ hú admin với mã ${errId} nha ヾ(≧へ≦)〃`;
 };

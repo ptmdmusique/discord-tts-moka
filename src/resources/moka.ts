@@ -1,32 +1,34 @@
 import { Client, Intents, Message } from "discord.js";
+import { Moka } from "../data/moka";
 import {
   doesMokaSupportCmd,
   isMokaConfigCmd,
+  isMokaGenerealCmd,
   isMokaTextCmd,
-} from "./data/moka-cmd";
-import { mokaToken } from "./utils/env";
-import { logError, logInfo } from "./utils/logger.util";
+  isMokaVoiceCmd,
+} from "../data/moka-cmd";
 import {
   getTextFromMokaCmd,
   handleMokaConfigCmd,
-} from "./utils/moka-cmd-handler";
-import { nanoid } from "nanoid";
+  handleMokaGeneralCmd,
+  handleMokaVoiceCmd,
+} from "../handlers/moka-cmd.handler";
+import { handleError, logInfo } from "../utils/logger.util";
+import { envVariables } from "./env";
 
-export const mokaGlobalConfig = {
-  cmdPrefix: "~",
-};
+export let mokaBot: Moka;
 
 const handleNewMessage = (client: Client) => (message: Message) => {
   try {
     if (
       client.user?.id === message.author.id ||
-      !message.content.startsWith(mokaGlobalConfig.cmdPrefix)
+      !message.content.startsWith(mokaBot.cmdPrefix)
     ) {
       return;
     }
 
     const [cmd, ...args] = message.content
-      .slice(mokaGlobalConfig.cmdPrefix.length)
+      .slice(mokaBot.cmdPrefix.length)
       .split(/ +/);
 
     if (!cmd) {
@@ -48,28 +50,38 @@ const handleNewMessage = (client: Client) => (message: Message) => {
       handleMokaConfigCmd(client, message)(cmd, args);
       return;
     }
+
+    if (isMokaGenerealCmd(cmd)) {
+      handleMokaGeneralCmd(client, message)(cmd, args);
+      return;
+    }
+
+    if (isMokaVoiceCmd(cmd)) {
+      handleMokaVoiceCmd(client, message)(args);
+      return;
+    }
   } catch (error) {
-    const errId = nanoid();
-    logError(error as any, `Moka message handler ${errId}`);
-    message.channel.send(
-      `Úi, lỗi gì trên server nè, nhớ hú admin với mã ${errId} nha ヾ(≧へ≦)〃`,
-    );
+    message.channel.send(handleError(error));
   }
 };
 
 export const startMokaBot = async () => {
   const mokaClient = new Client({
-    intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES],
+    intents: [
+      Intents.FLAGS.GUILDS,
+      Intents.FLAGS.GUILD_MESSAGES,
+      Intents.FLAGS.GUILD_VOICE_STATES,
+      Intents.FLAGS.GUILD_PRESENCES,
+    ],
   });
 
-  await mokaClient.login(mokaToken);
+  await mokaClient.login(envVariables.mokaToken);
 
   // --- Handlers
   mokaClient.on("ready", () => {
     logInfo(`Moka is ready! Name: ${mokaClient.user?.username}`);
+    mokaBot = new Moka();
   });
 
   mokaClient.on("messageCreate", handleNewMessage(mokaClient));
-
-  // ---
 };
