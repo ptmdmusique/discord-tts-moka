@@ -1,18 +1,22 @@
+import { protos } from "@google-cloud/text-to-speech";
 import { TTSConfig } from "../data/tts";
 
-export const ttsConfig = new TTSConfig();
+export let ttsConfig: TTSConfig;
+export const setupTTS = () => {
+  ttsConfig = new TTSConfig();
+};
 
 export async function convertTextToSpeech(text: string) {
-  // Construct the request
-  const request = {
-    input: { text: text },
-    // Select the language and SSML voice gender (optional)
-    voice: { languageCode: "en-US", ssmlGender: "NEUTRAL" },
-    // select the type of audio encoding
-    audioConfig: { audioEncoding: "MP3" },
-  } as const;
+  const request: protos.google.cloud.texttospeech.v1.ISynthesizeSpeechRequest =
+    {
+      input: { text },
+      voice: {
+        languageCode: ttsConfig.language,
+        ssmlGender: ttsConfig.ssmGender,
+      },
+      audioConfig: { audioEncoding: "MP3" },
+    } as const;
 
-  // Performs the text-to-speech request
   const [response] = await ttsConfig.client.synthesizeSpeech(request);
   return response.audioContent;
 }

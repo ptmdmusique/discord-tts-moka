@@ -15,6 +15,7 @@ import {
 } from "../handlers/moka-cmd.handler";
 import { handleError, logInfo } from "../utils/logger.util";
 import { envVariables } from "./env";
+import { setupTTS } from "./tts";
 
 export let mokaBot: Moka;
 
@@ -22,6 +23,7 @@ const handleNewMessage = (client: Client) => (message: Message) => {
   try {
     if (
       client.user?.id === message.author.id ||
+      !mokaBot ||
       !message.content.startsWith(mokaBot.cmdPrefix)
     ) {
       return;
@@ -80,6 +82,8 @@ export const startMokaBot = async () => {
   // --- Handlers
   mokaClient.on("ready", () => {
     logInfo(`Moka is ready! Name: ${mokaClient.user?.username}`);
+    setupTTS();
+
     mokaBot = new Moka();
   });
 
