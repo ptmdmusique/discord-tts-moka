@@ -1,7 +1,9 @@
-export const getMokaImgUrl = (type: "cute" | "sexy" | "teasing"): string => {
+export const getMokaImgUrl = (
+  type: "cute" | "sexy" | "teasing",
+): `https://${string}` => {
   switch (type) {
     case "cute":
-      return " https://www.anime-planet.com/images/characters/3679.jpg?t=1513437618";
+      return "https://www.anime-planet.com/images/characters/3679.jpg?t=1513437618";
     case "sexy":
       return "https://upload.wikimedia.org/wikipedia/en/4/45/Moka_Akashiya.png";
     case "teasing":
