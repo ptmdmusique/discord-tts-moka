@@ -11,7 +11,7 @@ export async function convertTextToSpeech(text: string) {
     {
       input: { text },
       voice: {
-        languageCode: ttsConfig.language,
+        languageCode: ttsConfig.languageCode,
         ssmlGender: ttsConfig.ssmGender,
       },
       audioConfig: { audioEncoding: "MP3" },

@@ -1,70 +1,46 @@
-import { protos, TextToSpeechClient } from "@google-cloud/text-to-speech";
+import { TextToSpeechClient } from "@google-cloud/text-to-speech";
+import fs from "fs";
 import { envVariables } from "../resources/env";
-import { logError } from "../utils/logger.util";
+import { logInfo } from "../utils/logge";
+import {
+  SSMLGender,
+  SupportedLanguageCode,
+  SupportedLanguageInfo,
+  supportedLanguageMap,
+  SupportedVoiceName,
+  supportedLanguageCode,
+} from "./supported-language";
 
-const supportedWavenetLanguage = [
-  "ro-RO",
-  "ar-XA",
-  "bn-IN",
-  "en-GB",
-  "fr-CA",
-  "en-US",
-  "es-ES",
-  "fi-FI",
-  "gu-IN",
-  "ja-JP",
-  "kn-IN",
-  "ml-IN",
-  "sv-SE",
-  "ta-IN",
-  "tr-TR",
-  "ms-MY",
-  "pa-IN",
-  "cs-CZ",
-  "de-DE",
-  "en-AU",
-  "en-IN",
-  "es-US",
-  "fr-FR",
-  "hi-IN",
-  "id-ID",
-  "it-IT",
-  "ko-KR",
-  "ru-RU",
-  "uk-UA",
-  "cmn-CN",
-  "cmn-TW",
-  "da-DK",
-  "el-GR",
-  "fil-PH",
-  "hu-HU",
-  "nb-NO",
-  "nl-BE",
-  "nl-NL",
-  "pt-PT",
-  "sk-SK",
-  "vi-VN",
-  "pl-PL",
-  "pt-BR",
-] as const;
-
-export type SupportedLanguage = typeof supportedWavenetLanguage[number];
-
-type SSMLGender =
-  | protos.google.cloud.texttospeech.v1.SsmlVoiceGender
-  | keyof typeof protos.google.cloud.texttospeech.v1.SsmlVoiceGender;
 export class TTSConfig {
   private _client: TextToSpeechClient;
-
   private _ssmlGender: SSMLGender = "FEMALE";
-
-  private _language: SupportedLanguage = "vi-VN";
+  private _languageCode: SupportedLanguageCode = "vi-VN";
+  private _voiceName: SupportedVoiceName = "vi-VN-Standard-A";
 
   constructor() {
     this._client = new TextToSpeechClient({
       projectId: envVariables.gcpProjectId,
       keyFilename: envVariables.gcpKeyFileName,
     });
+  }
+
+  // * Helpers
+  async writeSupportedVoicesToFile(path = "tts.json") {
+    const [result] = await this._client.listVoices({});
+    const voices = result.voices;
+
+    const outData: Record<string, SupportedLanguageInfo> = {};
+    voices?.forEach((voice) => {
+      if (voice.name) {
+        outData[voice.name] = voice;
+      }
+    });
+    fs.writeFileSync(path, JSON.stringify(outData), "utf8");
+    logInfo(`Supported language wrote to ${path}`);
+  }
+
+  getCurLanguageText() {
+    return `🌸🌸 Giọng nói hiện tại là ${this.languageCode} với kiểu ${this.voiceName} nhé (^人^) 🌸🌸`;
   }
 
   // * Setters - Getters
@@ -79,16 +55,57 @@ export class TTSConfig {
     this._ssmlGender = gender;
   }
 
-  get language() {
-    return this._language;
+  get languageCode() {
+    return this._languageCode;
   }
-  set language(language: SupportedLanguage) {
-    this._language = language;
+  set languageCode(language: SupportedLanguageCode) {
+    const isVoiceValid = !(
+      supportedLanguageMap[this._voiceName].languageCodes as [
+        SupportedLanguageCode,
+      ]
+    ).includes(language);
+
+    if (!isVoiceValid) {
+      // Find a suitable new voice if the language code doesn't
+      //  match with the voice language codes
+      const languageInfoList = Object.values(supportedLanguageMap);
+      const newVoice = languageInfoList.find(
+        ({ languageCodes, ssmlGender }) =>
+          (languageCodes as unknown as string[]).includes(language) &&
+          ssmlGender === this._ssmlGender,
+      );
+
+      if (newVoice) {
+        this._voiceName = newVoice.name;
+      }
+    }
+
+    this._languageCode = language;
+  }
+
+  get voiceName() {
+    return this._voiceName;
+  }
+  set voiceName(voiceName: SupportedVoiceName) {
+    const languageCodeList = supportedLanguageMap[voiceName].languageCodes as [
+      SupportedLanguageCode,
+    ];
+
+    const isValidLanguageCode = languageCodeList.includes(this._languageCode);
+    if (!isValidLanguageCode) {
+      this._languageCode = languageCodeList[0];
+    }
+
+    this._voiceName = voiceName;
   }
 }
 
-export const isSupportedLanguage = (
-  language: SupportedLanguage,
-): language is SupportedLanguage => {
-  return supportedWavenetLanguage.includes(language);
-};
+export const isSupportedLanguageCode = (
+  languageCode: string,
+): languageCode is SupportedLanguageCode =>
+  supportedLanguageCode.includes(languageCode as SupportedLanguageCode);
+
+export const isSupportedVoiceName = (
+  voiceName: string,
+): voiceName is SupportedVoiceName =>
+  supportedLanguageMap.hasOwnProperty(voiceName);

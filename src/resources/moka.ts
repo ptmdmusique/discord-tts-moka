@@ -4,6 +4,7 @@ import {
   doesMokaSupportCmd,
   isMokaConfigCmd,
   isMokaGenerealCmd,
+  isMokaLanguageCmd,
   isMokaTextCmd,
   isMokaVoiceCmd,
 } from "../data/moka-cmd";
@@ -11,9 +12,10 @@ import {
   getTextFromMokaCmd,
   handleMokaConfigCmd,
   handleMokaGeneralCmd,
+  handleMokaLanguageCmd,
   handleMokaVoiceCmd,
 } from "../handlers/moka-cmd.handler";
-import { handleError, logInfo } from "../utils/logger.util";
+import { handleError, logInfo } from "../utils/logge";
 import { envVariables } from "./env";
 import { setupTTS } from "./tts";
 
@@ -55,6 +57,11 @@ const handleNewMessage = (client: Client) => (message: Message) => {
 
     if (isMokaGenerealCmd(cmd)) {
       handleMokaGeneralCmd(client, message)(cmd, args);
+      return;
+    }
+
+    if (isMokaLanguageCmd(cmd)) {
+      handleMokaLanguageCmd(client, message)(cmd, args);
       return;
     }
 
