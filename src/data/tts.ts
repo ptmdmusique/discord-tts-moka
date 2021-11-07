@@ -1,7 +1,7 @@
 import { TextToSpeechClient } from "@google-cloud/text-to-speech";
 import fs from "fs";
 import { envVariables } from "../resources/env";
-import { logInfo } from "../utils/logge";
+import { logInfo } from "../utils/logger";
 import {
   SSMLGender,
   SupportedLanguageCode,
@@ -40,7 +40,7 @@ export class TTSConfig {
   }
 
   getCurLanguageText() {
-    return `🌸🌸 Giọng nói hiện tại là ${this.languageCode} với kiểu ${this.voiceName} nhé (^人^) 🌸🌸`;
+    return `🌸🌸 Giọng nói hiện tại là ${this.languageCode} với kiểu ${this.voiceName} nhé (^人^) 🌸🌸` as const;
   }
 
   // * Setters - Getters

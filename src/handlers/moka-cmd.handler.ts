@@ -3,14 +3,20 @@ import {
   VoiceConnection,
   VoiceConnectionStatus,
 } from "@discordjs/voice";
-import { Client, Message, MessageEmbed } from "discord.js";
-import { getLanguageHintEmbed } from "../data/embed";
+import { Client, Message } from "discord.js";
+import {
+  getConfigHintEmbed,
+  getGeneralHintEmbed,
+  getHelpEmbed,
+  getLanguageHintEmbed,
+  getTextHintEmbed,
+  getVoiceHintEmbed,
+} from "../data/embed";
 import {
   isMokaSupportedCmdType,
   MokaConfigCmd,
   MokaGeneralCmd,
   MokaLanguageCmd,
-  MokaSupportedCmdType,
   MokaTextCmd,
 } from "../data/moka-cmd";
 import { isSupportedLanguageCode, isSupportedVoiceName } from "../data/tts";
@@ -21,8 +27,7 @@ import {
   isMessageFromVoiceChannel,
   joinVoiceChannelFromMessage,
 } from "../utils/channel";
-import { handleError } from "../utils/logge";
-import { getUnimplementedMessage } from "../utils/misc";
+import { handleError } from "../utils/logger";
 
 const getDayType = (): "morning" | "afternoon" | "evening" => {
   const today = new Date();
@@ -112,22 +117,33 @@ export const handleMokaGeneralCmd =
             subscribeNewAudioPlayer(connection);
           });
         }
-
+        return;
       case "help":
         const cmdType = args[0];
         if (!cmdType || !isMokaSupportedCmdType(cmdType)) {
-          const embed = new MessageEmbed();
-          // TODO: Finish this
-          message.channel.send(getUnimplementedMessage("help"));
+          message.channel.send({ embeds: [getHelpEmbed()] });
           return;
         }
 
+        let embed = getHelpEmbed();
         switch (cmdType) {
           case "language":
-            message.channel.send({ embeds: [getLanguageHintEmbed()] });
+            embed = getLanguageHintEmbed();
             break;
-          // TODO: Finish this
+          case "voice":
+            embed = getVoiceHintEmbed();
+            break;
+          case "text":
+            embed = getTextHintEmbed();
+            break;
+          case "config":
+            embed = getConfigHintEmbed();
+            break;
+          case "general":
+            embed = getGeneralHintEmbed();
+            break;
         }
+        message.channel.send({ embeds: [embed] });
         return;
     }
   };

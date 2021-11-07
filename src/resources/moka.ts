@@ -15,7 +15,7 @@ import {
   handleMokaLanguageCmd,
   handleMokaVoiceCmd,
 } from "../handlers/moka-cmd.handler";
-import { handleError, logInfo } from "../utils/logge";
+import { handleError, logInfo } from "../utils/logger";
 import { envVariables } from "./env";
 import { setupTTS } from "./tts";
 
@@ -39,6 +39,7 @@ const handleNewMessage = (client: Client) => (message: Message) => {
       message.channel.send(`Bạn ơi lệnh rớt giữa đường kìa (。﹏。*)`);
       return;
     }
+
     if (!doesMokaSupportCmd(cmd)) {
       message.channel.send(`Bạn ơi mình hông hiểu lệnh "${cmd}" (≧﹏ ≦)`);
       return;
