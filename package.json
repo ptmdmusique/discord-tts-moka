@@ -29,6 +29,7 @@
     "ffmpeg-static": "^4.4.0",
     "google-auth-library": "^7.10.1",
     "nanoid": "^3.1.30",
+    "nodemon": "^2.0.15",
     "sodium": "^3.0.2"
   }
 }
