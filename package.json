@@ -10,6 +10,9 @@
     "start": "nodemon ./dist/index.js",
     "deploy": "git add . && git commit -m Heroku && git push heroku master"
   },
+  "engines": {
+    "node": "16"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
