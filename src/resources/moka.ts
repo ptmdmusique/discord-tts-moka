@@ -22,6 +22,8 @@ import { setupTTS } from "./tts";
 export let mokaBot: Moka;
 
 const handleNewMessage = (client: Client) => (message: Message) => {
+  logInfo(`New message from ${message.author.username}: ${message.content}`);
+
   try {
     if (
       client.user?.id === message.author.id ||
